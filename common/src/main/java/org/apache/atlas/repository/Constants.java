@@ -134,14 +134,14 @@ public final class Constants {
     /**
      * search backing index name for vertex keys.
      */
-    public static final String VERTEX_INDEX = "vertex_index";
+    public static final String VERTEX_INDEX = "vertexIndex";
 
     /**
      * search backing index name for edge labels.
      */
-    public static final String EDGE_INDEX = "edge_index";
+    public static final String EDGE_INDEX = "edgeIndex";
 
-    public static final String FULLTEXT_INDEX = "fulltext_index";
+    public static final String FULLTEXT_INDEX = "fulltextIndex";
 
     public static final String QUALIFIED_NAME                          = "Referenceable.qualifiedName";
     public static final String TYPE_NAME_PROPERTY_KEY                  = INTERNAL_PROPERTY_KEY_PREFIX + "typeName";
