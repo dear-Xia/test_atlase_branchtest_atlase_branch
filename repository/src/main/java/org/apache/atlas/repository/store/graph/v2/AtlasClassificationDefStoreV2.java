@@ -62,7 +62,8 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
             LOG.debug("==> AtlasClassificationDefStoreV1.preCreate({})", classificationDef);
         }
 
-        validateType(classificationDef);
+        // comment check src,in order to add chinese classification
+        // validateType(classificationDef);
 
         AtlasType type = typeRegistry.getType(classificationDef.getName());
 
@@ -177,7 +178,8 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
             LOG.debug("==> AtlasClassificationDefStoreV1.update({})", classifiDef);
         }
 
-        validateType(classifiDef);
+        // comment check src,in order to add chinese classification
+        // validateType(classifiDef);
 
         AtlasClassificationDef ret = StringUtils.isNotBlank(classifiDef.getGuid())
                   ? updateByGuid(classifiDef.getGuid(), classifiDef) : updateByName(classifiDef.getName(), classifiDef);
@@ -200,7 +202,8 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
 
         AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_UPDATE, existingDef), "update classification-def ", name);
 
-        validateType(classificationDef);
+        // comment check src,in order to add chinese classification
+        // validateType(classificationDef);
 
         AtlasType type = typeRegistry.getType(classificationDef.getName());
 
@@ -236,7 +239,8 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
 
         AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_UPDATE, existingDef), "update classification-def ", (existingDef != null ? existingDef.getName() : guid));
 
-        validateType(classificationDef);
+        // comment check src,in order to add chinese classification
+        // validateType(classificationDef);
 
         AtlasType type = typeRegistry.getTypeByGuid(guid);
 
