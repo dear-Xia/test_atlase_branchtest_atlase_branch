@@ -28,6 +28,8 @@ public class SSOAuthenticationProperties {
     private String cookieName = "hadoop-jwt";
     private String originalUrlQueryParam = null;
     private String[] userAgentList = null;
+    private String appId = null;
+    private String appSecret = null;
 
     public String getAuthenticationProviderUrl() {
         return authenticationProviderUrl;
@@ -73,6 +75,22 @@ public class SSOAuthenticationProperties {
      */
     public void setUserAgentList(String[] userAgentList) {
         this.userAgentList = userAgentList;
+    }
+
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+
+    public String getAppSecret() {
+        return appSecret;
+    }
+
+    public void setAppSecret(String appSecret) {
+        this.appSecret = appSecret;
     }
 }
 

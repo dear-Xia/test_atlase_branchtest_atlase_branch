@@ -33,6 +33,7 @@
         <security:session-management
                 session-fixation-protection="newSession" />
         <intercept-url pattern="/**" access="isAuthenticated()" />
+        <custom-filter ref="rayfaySSOAuthenticationFilter" after="BASIC_AUTH_FILTER" />
         <custom-filter ref="ssoAuthenticationFilter" after="BASIC_AUTH_FILTER" />
 
         <security:custom-filter ref="krbAuthenticationFilter" after="SERVLET_API_SUPPORT_FILTER" />
@@ -54,6 +55,9 @@
     </security:http>
 
     <beans:bean id="krbAuthenticationFilter" class="org.apache.atlas.web.filters.AtlasAuthenticationFilter">
+    </beans:bean>
+
+    <beans:bean id="rayfaySSOAuthenticationFilter" class="org.apache.atlas.web.filters.AtlasRayfaySSOAuthenticationFilter">
     </beans:bean>
 
     <beans:bean id="ssoAuthenticationFilter" class="org.apache.atlas.web.filters.AtlasKnoxSSOAuthenticationFilter">

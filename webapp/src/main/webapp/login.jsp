@@ -15,7 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 -->
+<%@ page import="org.apache.commons.configuration.Configuration"%>
+<%@ page import="org.apache.atlas.ApplicationProperties"%>
 <% response.setHeader("X-Frame-Options", "DENY"); %>
+<%
+    Configuration configuration = ApplicationProperties.get();
+    if (configuration != null) {
+        boolean ssoEnabled = configuration.getBoolean("atlas.sso.rayfay.enabled", false);
+        if(ssoEnabled) {
+            response.sendRedirect("");
+            return;
+        }
+    }
+%>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
