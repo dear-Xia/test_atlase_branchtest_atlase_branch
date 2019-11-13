@@ -45,10 +45,8 @@ public class DremioHook implements NameSpaceChangeListener {
   private NameSpaceChangeListener dremioHook;
 
   public DremioHook() {
-    this.initialize();
   }
-
-  private void initialize() {
+  private void initialize(SingletonRegistry registry) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("==> DremioHook.initialize()");
     }
@@ -60,7 +58,7 @@ public class DremioHook implements NameSpaceChangeListener {
 
       activatePluginClassLoader();
       dremioHook = cls.newInstance();
-
+      dremioHook.init(registry);
     } catch (Exception excp) {
       LOG.error("Error instantiating Atlas hook implementation", excp);
     } finally {
@@ -86,9 +84,8 @@ public class DremioHook implements NameSpaceChangeListener {
 
   @Override
   public void init(SingletonRegistry registry) {
-    LOG.error("DremioHook.initialize.");
-    this.initialize();
     NamespaceService.addChangeListener(this);
+    this.initialize(registry);
   }
 
   @Override
@@ -109,7 +106,6 @@ public class DremioHook implements NameSpaceChangeListener {
   public void afterUpdate(NamespaceKey key, NameSpaceContainer v) {
     try {
       atlasPluginClassLoader = AtlasPluginClassLoader.getInstance(DREMIO_PLUGIN_TYPE, this.getClass());
-
       activatePluginClassLoader();
       dremioHook.afterUpdate(key, v);
     } catch (PrivilegedActionException e) {

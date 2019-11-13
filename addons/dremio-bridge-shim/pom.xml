@@ -39,7 +39,7 @@
         <dependency>
             <groupId>com.dremio.services</groupId>
             <artifactId>dremio-services-namespace</artifactId>
-            <version>3.3.2-201908142136370993-d60145d</version>
+            <version>4.0.2-201910020123580864-a98a0b9</version>
         </dependency>
     </dependencies>
 </project>
