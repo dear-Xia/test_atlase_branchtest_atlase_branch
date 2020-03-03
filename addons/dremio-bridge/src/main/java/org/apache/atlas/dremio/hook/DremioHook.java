@@ -18,9 +18,7 @@
 
 package org.apache.atlas.dremio.hook;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import com.beust.jcommander.internal.Lists;
 import com.dremio.config.DremioConfig;
@@ -105,7 +103,11 @@ public class DremioHook extends AtlasHook implements NameSpaceChangeListener {
     ret.getEntity().setAttribute("sourceType", source.getType());
     ret.getEntity().setAttribute("isSource", true);
     ret.getEntity().setAttribute("createdAt", source.getCtime());
-    ret.getEntity().setAttribute("cluster", AtlasTypeUtil.getAtlasObjectId(cluster.getEntity()));
+      Map<String, Object> parameters = new HashMap<>();
+      parameters.put("sourceType", source.getType());
+      ret.getEntity().setAttribute("parameters", parameters);
+
+      ret.getEntity().setAttribute("cluster", AtlasTypeUtil.getAtlasObjectId(cluster.getEntity()));
     ret.addReferredEntity(cluster.getEntity());
     return ret;
   }

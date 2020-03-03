@@ -160,10 +160,13 @@ public class ExportService {
             typesDef.getEntityDefs().add(entityDef);
         }
 
-        for (String classificationType : context.classificationTypes) {
-            AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classificationType);
-
-            typesDef.getClassificationDefs().add(classificationDef);
+//        for (String classificationType : context.classificationTypes) {
+//            AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classificationType);
+//
+//            typesDef.getClassificationDefs().add(classificationDef);
+//        }
+        if(typeRegistry.getAllClassificationDefs() != null && !typeRegistry.getAllClassificationDefs().isEmpty()){
+            typesDef.getClassificationDefs().addAll(typeRegistry.getAllClassificationDefs());
         }
 
         for (String structType : context.structTypes) {

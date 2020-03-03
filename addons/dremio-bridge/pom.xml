@@ -46,15 +46,15 @@
             <artifactId>dremio-dac-backend</artifactId>
             <version>4.0.2-201910020123580864-a98a0b9</version>
         </dependency>
-<!--         <dependency> -->
-<!--             <groupId>org.apache.atlas</groupId> -->
-<!--             <artifactId>atlas-client-v1</artifactId> -->
-<!--         </dependency> -->
+         <dependency>
+             <groupId>org.apache.atlas</groupId>
+             <artifactId>atlas-client-v1</artifactId>
+         </dependency>
 
-<!--         <dependency> -->
-<!--             <groupId>org.apache.atlas</groupId> -->
-<!--             <artifactId>atlas-client-v2</artifactId> -->
-<!--         </dependency> -->
+         <dependency>
+             <groupId>org.apache.atlas</groupId>
+             <artifactId>atlas-client-v2</artifactId>
+         </dependency>
 
         <dependency>
             <groupId>org.apache.atlas</groupId>

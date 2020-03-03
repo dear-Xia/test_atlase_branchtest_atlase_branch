@@ -133,11 +133,11 @@ public class AtlasJanusGraphManagement implements AtlasGraphManagement {
     private static void checkName(String name) {
         //for some reason, name checking was removed from StandardPropertyKeyMaker.make()
         //in Janus.  For consistency, do the check here.
-        Preconditions.checkArgument(StringUtils.isNotBlank(name), "Need to specify name");
-
-        for (char c : RESERVED_CHARS) {
-            Preconditions.checkArgument(name.indexOf(c) < 0, "Name can not contains reserved character %s: %s", c, name);
-        }
+//        Preconditions.checkArgument(StringUtils.isNotBlank(name), "Need to specify name");
+//
+//        for (char c : RESERVED_CHARS) {
+//            Preconditions.checkArgument(name.indexOf(c) < 0, "Name can not contains reserved character %s: %s", c, name);
+//        }
 
     }
 

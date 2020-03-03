@@ -62,7 +62,12 @@ public class AtlasJanusElement<T extends Element> implements AtlasElement {
         //add explicit logic to return null if the property does not exist
         //This is the behavior Atlas expects.  Janus throws an exception
         //in this scenario.
-        Property p = getWrappedElement().property(propertyName);
+        Property p;
+        try {
+            p = getWrappedElement().property(propertyName);
+        }catch(Exception e){
+            return null;
+        }
         if (p.isPresent()) {
             Object propertyValue= p.value();
             if (propertyValue == null) {
@@ -115,7 +120,11 @@ public class AtlasJanusElement<T extends Element> implements AtlasElement {
                     removeProperty(propertyName);
                 }
             } else {
-                getWrappedElement().property(propertyName, value);
+                try {
+                    getWrappedElement().property(propertyName, value);
+                }catch(Exception e){
+
+                }
             }
         } catch(SchemaViolationException e) {
             throw new AtlasSchemaViolationException(e);

@@ -23,8 +23,10 @@ import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasException;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasEntity.AtlasEntityWithExtInfo;
+import org.apache.atlas.repository.graphdb.AtlasPropertyKey;
 import org.apache.atlas.repository.graphdb.AtlasVertex;
 import org.apache.atlas.repository.graphdb.janus.AtlasJanusGraphDatabase;
+import org.apache.atlas.repository.graphdb.janus.AtlasJanusObjectFactory;
 import org.apache.atlas.repository.store.graph.v2.AtlasGraphUtilsV2;
 import org.apache.atlas.utils.AuthenticationUtil;
 import org.apache.commons.cli.CommandLine;
@@ -32,8 +34,11 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.configuration.Configuration;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
+import org.janusgraph.core.PropertyKey;
 import org.janusgraph.core.schema.JanusGraphIndex;
+import org.janusgraph.core.schema.JanusGraphManagement;
 import org.janusgraph.core.schema.SchemaAction;
 import org.janusgraph.core.schema.SchemaStatus;
 import org.janusgraph.diskstorage.BackendTransaction;
@@ -46,10 +51,7 @@ import org.janusgraph.graphdb.types.MixedIndexType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class RepairIndex {
@@ -137,6 +139,17 @@ public class RepairIndex {
         atlasClientV2 = getAtlasClientV2(atlasEndpoint, new String[]{uid, pwd});
     }
 
+    private void createVertexMixedIndex(ManagementSystem management, String indexName, String backingIndex, List<AtlasPropertyKey> propertyKeys) {
+        JanusGraphManagement.IndexBuilder indexBuilder = management.buildIndex(indexName, Vertex.class);
+
+        for (AtlasPropertyKey key : propertyKeys) {
+            PropertyKey janusKey = AtlasJanusObjectFactory.createPropertyKey(key);
+            indexBuilder.addKey(janusKey);
+        }
+
+        indexBuilder.buildMixedIndex(backingIndex);
+    }
+
     private void restoreAll() throws Exception {
         for (String indexName : getIndexes()){
             displayCrlf("Restoring: " + indexName);
@@ -144,6 +157,12 @@ public class RepairIndex {
 
             ManagementSystem mgmt = (ManagementSystem) graph.openManagement();
             JanusGraphIndex index = mgmt.getGraphIndex(indexName);
+            if (index == null) {
+                createVertexMixedIndex(mgmt, indexName, "backing", Collections.emptyList());
+                LOG.info("Created index : {}", indexName);
+                index = mgmt.getGraphIndex(indexName);
+            }
+
             mgmt.updateIndex(index, SchemaAction.REINDEX).get();
             mgmt.commit();
 

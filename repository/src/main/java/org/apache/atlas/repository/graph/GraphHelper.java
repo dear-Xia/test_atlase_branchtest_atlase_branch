@@ -1594,9 +1594,15 @@ public final class GraphHelper {
         List<AtlasEdge>                ret;
         String                         edgeLabel     = attribute.getRelationshipEdgeLabel();
         AtlasRelationshipEdgeDirection edgeDirection = attribute.getRelationshipEdgeDirection();
-        Iterator<AtlasEdge>            edgesForLabel = getEdgesForLabel(vertex, edgeLabel, edgeDirection);
+        Iterator<AtlasEdge> edgesForLabel;
+        try {
+            edgesForLabel = getEdgesForLabel(vertex, edgeLabel, edgeDirection);
 
+        }catch(IllegalStateException e){
+            return new ArrayList<AtlasEdge>();
+        }
         ret = IteratorUtils.toList(edgesForLabel);
+
 
         sortCollectionElements(attribute, ret);
 
