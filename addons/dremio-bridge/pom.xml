@@ -40,25 +40,131 @@
             <groupId>com.dremio.services</groupId>
             <artifactId>dremio-services-namespace</artifactId>
             <version>4.0.2-201910020123580864-a98a0b9</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j-to-slf4j</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jul-to-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.dremio</groupId>
             <artifactId>dremio-dac-backend</artifactId>
             <version>4.0.2-201910020123580864-a98a0b9</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-to-slf4j</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>logback-access</artifactId>
+                    <groupId>ch.qos.logback</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>logback-classic</artifactId>
+                    <groupId>ch.qos.logback</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>logback-core</artifactId>
+                    <groupId>ch.qos.logback</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jul-to-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
          <dependency>
              <groupId>org.apache.atlas</groupId>
              <artifactId>atlas-client-v1</artifactId>
+             <exclusions>
+                 <exclusion>
+                     <artifactId>slf4j-log4j12</artifactId>
+                     <groupId>org.slf4j</groupId>
+                 </exclusion>
+                 <exclusion>
+                     <artifactId>slf4j-api</artifactId>
+                     <groupId>org.slf4j</groupId>
+                 </exclusion>
+                 <exclusion>
+                     <artifactId>jul-to-slf4j</artifactId>
+                     <groupId>org.slf4j</groupId>
+                 </exclusion>
+                 <exclusion>
+                     <artifactId>commons-logging</artifactId>
+                     <groupId>commons-logging</groupId>
+                 </exclusion>
+             </exclusions>
          </dependency>
 
          <dependency>
              <groupId>org.apache.atlas</groupId>
              <artifactId>atlas-client-v2</artifactId>
+             <exclusions>
+                 <exclusion>
+                     <artifactId>slf4j-log4j12</artifactId>
+                     <groupId>org.slf4j</groupId>
+                 </exclusion>
+                 <exclusion>
+                     <artifactId>jul-to-slf4j</artifactId>
+                     <groupId>org.slf4j</groupId>
+                 </exclusion>
+                 <exclusion>
+                     <artifactId>slf4j-api</artifactId>
+                     <groupId>org.slf4j</groupId>
+                 </exclusion>
+                 <exclusion>
+                     <artifactId>commons-logging</artifactId>
+                     <groupId>commons-logging</groupId>
+                 </exclusion>
+             </exclusions>
          </dependency>
 
         <dependency>
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-notification</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jul-to-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         
     </dependencies>
