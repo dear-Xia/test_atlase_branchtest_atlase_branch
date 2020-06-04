@@ -25,6 +25,10 @@ public enum AtlasPrivilege {
      UPDATE_CHILD_CLASSIFICATION("update-child-classification"),
      REMOVE_CHILD_CLASSIFICATION("remove-child-classification"),
 
+     ADD_CLASSIFICATION_TABLES("add-classification-tables"),
+     UPDATE_CLASSIFICATION_TABLES("update-classification-tables"),
+     REMOVE_CLASSIFICATION_TABLES("remove-classification-tables"),
+
      ENTITY_READ("entity-read"),
      ENTITY_CREATE("entity-create"),
      ENTITY_UPDATE("entity-update"),

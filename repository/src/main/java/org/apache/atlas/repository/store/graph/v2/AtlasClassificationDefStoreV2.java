@@ -89,18 +89,21 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
         return ret;
     }
 
+    private boolean needCheckChild(AtlasClassificationDef classificationDef){
+        return classificationDef!=null && classificationDef.getSuperTypes() != null && !classificationDef.getSuperTypes().isEmpty();
+    }
+
     @Override
     public AtlasClassificationDef create(AtlasClassificationDef classificationDef, AtlasVertex preCreateResult) throws AtlasBaseException {
         if (LOG.isDebugEnabled()) {
             LOG.debug("==> AtlasClassificationDefStoreV1.create({}, {})", classificationDef, preCreateResult);
         }
 
-        Set<String> superTypes = classificationDef.getSuperTypes();
         AtlasTypeAccessRequest atlasTypeAccessRequest = new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_CREATE, classificationDef);
-        if (superTypes == null || superTypes.isEmpty()) {
+        if (!needCheckChild(classificationDef)) {
             AtlasAuthorizationUtils.verifyAccess(atlasTypeAccessRequest, "create classification-def ", classificationDef.getName());
         } else {
-            if(!recursionCheckChildClassification(classificationDef)){
+            if(!recursionCheckChildClassification(classificationDef,AtlasPrivilege.ADD_CHILD_CLASSIFICATION)){
                 throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, atlasTypeAccessRequest.getUser(), "create classification-def "+classificationDef.getName());
             }
         }
@@ -118,18 +121,18 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
         return ret;
     }
 
-    private boolean recursionCheckChildClassification(AtlasClassificationDef classificationDef) throws AtlasBaseException {
+    private boolean recursionCheckChildClassification(AtlasClassificationDef classificationDef,AtlasPrivilege privilege) throws AtlasBaseException {
         for (String superType : classificationDef.getSuperTypes()) {
             AtlasVertex typeVertexByName = typeDefStore.findTypeVertexByName(superType);
             AtlasClassificationDef ret = toClassificationDef(typeVertexByName);
 
-            if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasTypeAccessRequest(AtlasPrivilege.ADD_CHILD_CLASSIFICATION, ret))){
+            if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasTypeAccessRequest(privilege, ret))){
                 return true;
             }
 
             Set<String> superTypes = ret.getSuperTypes();
             if (superTypes == null || superTypes.isEmpty()) {
-                return recursionCheckChildClassification(ret);
+                return recursionCheckChildClassification(ret,privilege);
             }
         }
         return false;
@@ -225,8 +228,15 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
         }
 
         AtlasClassificationDef existingDef = typeRegistry.getClassificationDefByName(name);
+        AtlasTypeAccessRequest atlasTypeAccessRequest = new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_UPDATE, existingDef);
+        if (!needCheckChild(existingDef)) {
+            AtlasAuthorizationUtils.verifyAccess(atlasTypeAccessRequest, "update classification-def ", name);
+        } else {
+            if(!recursionCheckChildClassification(existingDef,AtlasPrivilege.UPDATE_CHILD_CLASSIFICATION)){
+                throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, atlasTypeAccessRequest.getUser(), "update classification-def "+name);
+            }
+        }
 
-        AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_UPDATE, existingDef), "update classification-def ", name);
 
         // comment check src,in order to add chinese classification
         // validateType(classificationDef);
@@ -263,7 +273,17 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
 
         AtlasClassificationDef existingDef = typeRegistry.getClassificationDefByGuid(guid);
 
-        AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_UPDATE, existingDef), "update classification-def ", (existingDef != null ? existingDef.getName() : guid));
+        AtlasTypeAccessRequest atlasTypeAccessRequest = new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_UPDATE, existingDef);
+        if (!needCheckChild(existingDef)) {
+            AtlasAuthorizationUtils.verifyAccess(atlasTypeAccessRequest, "update classification-def ", existingDef.getName());
+        } else {
+            if(!recursionCheckChildClassification(existingDef,AtlasPrivilege.UPDATE_CHILD_CLASSIFICATION)){
+                throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, atlasTypeAccessRequest.getUser(), "update classification-def "+existingDef.getName());
+            }
+        }
+
+
+//        AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_UPDATE, existingDef), "update classification-def ", (existingDef != null ? existingDef.getName() : guid));
 
         // comment check src,in order to add chinese classification
         // validateType(classificationDef);
@@ -300,7 +320,16 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
 
         AtlasClassificationDef existingDef = typeRegistry.getClassificationDefByName(name);
 
-        AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_DELETE, existingDef), "delete classification-def ", name);
+        AtlasTypeAccessRequest atlasTypeAccessRequest = new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_DELETE, existingDef);
+        if (!needCheckChild(existingDef)) {
+            AtlasAuthorizationUtils.verifyAccess(atlasTypeAccessRequest, "delete classification-def ", name);
+        } else {
+            if(!recursionCheckChildClassification(existingDef,AtlasPrivilege.REMOVE_CHILD_CLASSIFICATION)){
+                throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, atlasTypeAccessRequest.getUser(), "delete classification-def "+name);
+            }
+        }
+
+//        AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_DELETE, existingDef), "delete classification-def ", name);
 
         AtlasVertex ret = typeDefStore.findTypeVertexByNameAndCategory(name, TypeCategory.TRAIT);
 
@@ -329,7 +358,16 @@ class AtlasClassificationDefStoreV2 extends AtlasAbstractDefStoreV2<AtlasClassif
 
         AtlasClassificationDef existingDef = typeRegistry.getClassificationDefByGuid(guid);
 
-        AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_DELETE, existingDef), "delete classification-def ", (existingDef != null ? existingDef.getName() : guid));
+        AtlasTypeAccessRequest atlasTypeAccessRequest = new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_DELETE, existingDef);
+        if (!needCheckChild(existingDef)) {
+            AtlasAuthorizationUtils.verifyAccess(atlasTypeAccessRequest, "delete classification-def ", (existingDef != null ? existingDef.getName() : guid));
+        } else {
+            if(!recursionCheckChildClassification(existingDef,AtlasPrivilege.REMOVE_CHILD_CLASSIFICATION)){
+                throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, atlasTypeAccessRequest.getUser(), "delete classification-def "+(existingDef != null ? existingDef.getName() : guid));
+            }
+        }
+
+//        AtlasAuthorizationUtils.verifyAccess(new AtlasTypeAccessRequest(AtlasPrivilege.TYPE_DELETE, existingDef), "delete classification-def ", (existingDef != null ? existingDef.getName() : guid));
 
         AtlasVertex ret = typeDefStore.findTypeVertexByGuidAndCategory(guid, TypeCategory.TRAIT);
 
