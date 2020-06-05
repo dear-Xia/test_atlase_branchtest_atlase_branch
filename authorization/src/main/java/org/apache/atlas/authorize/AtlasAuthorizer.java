@@ -67,6 +67,11 @@ public interface AtlasAuthorizer {
         return true;
     }
 
+    default
+    boolean isAccessAllowed(AtlasClassificationEntityRequest request) throws AtlasAuthorizationException {
+        return true;
+    }
+
     /**
      * scrub search-results to handle entities for which the user doesn't have access
      * @param request

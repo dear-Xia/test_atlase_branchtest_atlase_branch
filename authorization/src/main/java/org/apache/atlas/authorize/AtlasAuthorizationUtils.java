@@ -70,6 +70,13 @@ public class AtlasAuthorizationUtils {
         }
     }
 
+    public static void verifyAccess(AtlasClassificationEntityRequest request, Object... errorMsgParams) throws AtlasBaseException {
+        if (!isAccessAllowed(request)) {
+            String message = (errorMsgParams != null && errorMsgParams.length > 0) ? StringUtils.join(errorMsgParams) : "";
+            throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, request.getUser(), message);
+        }
+    }
+
     public static void scrubSearchResults(AtlasSearchResultScrubRequest request) throws AtlasBaseException {
         String userName = getCurrentUserName();
 
@@ -85,6 +92,31 @@ public class AtlasAuthorizationUtils {
                 LOG.error("Unable to obtain AtlasAuthorizer", e);
             }
         }
+    }
+
+    public static boolean isAccessAllowed(AtlasClassificationEntityRequest request) {
+        MetricRecorder metric = RequestContext.get().startMetricRecord("isAccessAllowed");
+
+        boolean ret      = false;
+        String  userName = getCurrentUserName();
+
+        if (StringUtils.isNotEmpty(userName)) {
+            try {
+                AtlasAuthorizer authorizer = AtlasAuthorizerFactory.getAtlasAuthorizer();
+
+                request.setUser(userName, getCurrentUserGroups());
+                request.setClientIPAddress(RequestContext.get().getClientIPAddress());
+                ret = authorizer.isAccessAllowed(request);
+            } catch (AtlasAuthorizationException e) {
+                LOG.error("Unable to obtain AtlasAuthorizer", e);
+            }
+        } else {
+            ret = true;
+        }
+
+        RequestContext.get().endMetricRecord(metric);
+
+        return ret;
     }
 
     public static boolean isAccessAllowed(AtlasAdminAccessRequest request) {
