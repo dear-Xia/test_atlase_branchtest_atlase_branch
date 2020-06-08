@@ -113,6 +113,7 @@ public abstract class AtlasBaseClient {
     private AtlasClientContext atlasClientContext;
     private boolean retryEnabled = false;
     private Cookie cookie = null;
+    private String token = null;
 
     private SecureClientUtils clientUtils;
 
@@ -146,6 +147,11 @@ public abstract class AtlasBaseClient {
 
     protected AtlasBaseClient(String[] baseUrls, Cookie cookie) {
         this.cookie = cookie;
+        initializeState(baseUrls, null, null);
+    }
+
+    protected AtlasBaseClient(String[] baseUrls, String token) {
+        this.token = token;
         initializeState(baseUrls, null, null);
     }
 
@@ -309,6 +315,10 @@ public abstract class AtlasBaseClient {
         }
     }
 
+    public void setToken(String token){
+        this.token = token;
+    }
+
     @VisibleForTesting
     protected String determineActiveServiceURL(String[] baseUrls, Client client) {
         if (baseUrls.length == 0) {
@@ -377,6 +387,10 @@ public abstract class AtlasBaseClient {
             // Set cookie if present
             if (cookie != null) {
                 requestBuilder.cookie(cookie);
+            }
+
+            if(StringUtils.isNotBlank(token)){
+                requestBuilder.header("Authorization","Bearer "+token);
             }
 
             clientResponse = requestBuilder.method(api.getMethod(), ClientResponse.class, requestObject);

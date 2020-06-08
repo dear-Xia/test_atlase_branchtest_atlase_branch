@@ -20,6 +20,9 @@ package org.apache.atlas.repository.store.graph;
 import org.apache.atlas.AtlasErrorCode;
 import org.apache.atlas.GraphTransactionInterceptor;
 import org.apache.atlas.annotation.GraphTransaction;
+import org.apache.atlas.authorize.AtlasAuthorizationUtils;
+import org.apache.atlas.authorize.AtlasPrivilege;
+import org.apache.atlas.authorize.AtlasTypeAccessRequest;
 import org.apache.atlas.exception.AtlasBaseException;
 import org.apache.atlas.listener.ChangedTypeDefs;
 import org.apache.atlas.listener.TypeDefChangeListener;
@@ -646,7 +649,8 @@ public abstract class AtlasTypeDefGraphStore implements AtlasTypeDefStore {
         }
 
         for(AtlasClassificationType classificationType : typeRegistry.getAllClassificationTypes()) {
-            if (searchPredicates.evaluate(classificationType)) {
+            if (searchPredicates.evaluate(classificationType)
+            && checkReadClassification(classificationType.getClassificationDef(),AtlasPrivilege.TYPE_READ)) {
                 typesDef.getClassificationDefs().add(classificationType.getClassificationDef());
             }
         }
@@ -664,6 +668,29 @@ public abstract class AtlasTypeDefGraphStore implements AtlasTypeDefStore {
         }
 
         return typesDef;
+    }
+
+    private boolean checkReadClassification(AtlasClassificationDef classificationDef,AtlasPrivilege privilege) throws AtlasBaseException {
+        if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasTypeAccessRequest(privilege, classificationDef))){
+            return true;
+        }
+        return recursionCheckChildClassification(classificationDef.getSuperTypes(),privilege);
+    }
+
+    private boolean recursionCheckChildClassification(Set<String> superTypes, AtlasPrivilege privilege) {
+        if(superTypes!=null && !superTypes.isEmpty()){
+            for (String superType : superTypes) {
+                AtlasClassificationDef ret = typeRegistry.getClassificationDefByName(superType);
+
+                if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasTypeAccessRequest(privilege, ret))){
+                    return true;
+                }
+
+                Set<String> retSuperTypes = ret.getSuperTypes();
+                return recursionCheckChildClassification(retSuperTypes,privilege);
+            }
+        }
+        return false;
     }
 
     @Override

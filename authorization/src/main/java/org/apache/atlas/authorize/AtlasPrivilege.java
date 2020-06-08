@@ -21,9 +21,12 @@ public enum AtlasPrivilege {
      TYPE_CREATE("type-create"),
      TYPE_UPDATE("type-update"),
      TYPE_DELETE("type-delete"),
+     TYPE_READ("type-read"),
      ADD_CHILD_CLASSIFICATION("add-child-classification"),
      UPDATE_CHILD_CLASSIFICATION("update-child-classification"),
      REMOVE_CHILD_CLASSIFICATION("remove-child-classification"),
+     AUTHORIZE_CHILD_CLASSIFICATION("authorize-child-classification"),
+
 
      ADD_CLASSIFICATION_TABLES("add-classification-tables"),
      UPDATE_CLASSIFICATION_TABLES("update-classification-tables"),
