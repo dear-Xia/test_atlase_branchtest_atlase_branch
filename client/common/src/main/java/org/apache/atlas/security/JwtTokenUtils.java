@@ -45,42 +45,52 @@ public final class JwtTokenUtils {
     }
 
     public void refreshToken() {
+        PrintWriter out = null;
+        BufferedReader reader = null;
+        HttpURLConnection conn = null;
         try {
             BASE64Encoder encoder = new BASE64Encoder();
             URL url = new URL(tokenUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("Accept", "application/json, application/x-www-form-urlencoded");
+            conn.setRequestProperty("Accept", "*/*");
             conn.setRequestProperty("Authorization", String.format(
                     "Basic %s", encoder.encode(String.format("%s:%s", clientId,
                             clientSecret).getBytes("UTF-8"))));
-
+            conn.setUseCaches(false);
             // 发送POST请求必须设置如下两行
             conn.setDoOutput(true);
             conn.setDoInput(true);
-            try(PrintWriter out = new PrintWriter(conn.getOutputStream());
-                InputStreamReader inputStreamReader = new InputStreamReader(conn.getInputStream());
-            ){
-                // 发送请求参数
-                out.print(String.format("username=%s&password=%s&grant_type=%s", userName, password, "password"));
-                // flush输出流的缓冲
-                out.flush();
 
-                String line;
-                BufferedReader reader = new BufferedReader(inputStreamReader);
-                StringBuilder sb = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
+            // 获取URLConnection对象对应的输出流
+            out = new PrintWriter(conn.getOutputStream());
+            // 发送请求参数
+            String params = "username=" + userName + "&password=" + password + "&grant_type=password";
+            out.print(params);
+            // flush输出流的缓冲
+            out.flush();
 
-                JsonNode jsonNode = mapper.readTree(sb.toString());
-                token = jsonNode.get("access_token").asText();
+            String line;
+            reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
             }
 
-            conn.disconnect();
+            JsonNode jsonNode = mapper.readTree(sb.toString());
+            token = jsonNode.get("access_token").asText();
+
         } catch (Exception ex) {
             throw new RuntimeException("Fetch token failed " + ex.getMessage());
+        } finally {
+            try {
+                if (out != null) out.close();
+                if (reader != null) reader.close();
+                if (conn != null) conn.disconnect();
+            } catch (Exception e) {
+                // nothing need to do
+            }
         }
     }
 

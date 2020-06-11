@@ -648,9 +648,12 @@ public abstract class AtlasTypeDefGraphStore implements AtlasTypeDefStore {
             }
         }
 
+
+        AtlasPrivilege accessPrivilege = getAccessPrivilege(searchFilter);
         for(AtlasClassificationType classificationType : typeRegistry.getAllClassificationTypes()) {
             if (searchPredicates.evaluate(classificationType)
-            && checkReadClassification(classificationType.getClassificationDef(),AtlasPrivilege.TYPE_READ)) {
+            && checkReadClassification(classificationType.getClassificationDef(),AtlasPrivilege.TYPE_READ)
+            && (accessPrivilege == null || checkReadClassification(classificationType.getClassificationDef(),accessPrivilege))) {
                 typesDef.getClassificationDefs().add(classificationType.getClassificationDef());
             }
         }
@@ -668,6 +671,18 @@ public abstract class AtlasTypeDefGraphStore implements AtlasTypeDefStore {
         }
 
         return typesDef;
+    }
+
+    private AtlasPrivilege getAccessPrivilege(SearchFilter searchFilter) {
+        if(StringUtils.isNotBlank(searchFilter.getParam("access"))){
+            String privilegeType = searchFilter.getParam("access");
+            for (AtlasPrivilege value : AtlasPrivilege.values()) {
+                if(StringUtils.equalsIgnoreCase(value.getType(),privilegeType)){
+                    return value;
+                }
+            }
+        }
+        return null;
     }
 
     private boolean checkReadClassification(AtlasClassificationDef classificationDef,AtlasPrivilege privilege) throws AtlasBaseException {
