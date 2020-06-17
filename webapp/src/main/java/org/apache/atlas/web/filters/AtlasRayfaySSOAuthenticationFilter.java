@@ -270,7 +270,7 @@ public class AtlasRayfaySSOAuthenticationFilter implements Filter {
         if ("XMLHttpRequest".equals(ajaxRequestHeader)) {
             String ssourl = constructLoginURL(httpRequest, true);
             JSONObject json = new JSONObject();
-            json.put("knoxssoredirectURL", URLEncoder.encode(ssourl, "UTF-8"));
+            json.put("rayfayssoredirectURL", URLEncoder.encode(ssourl, "UTF-8"));
             httpServletResponse.setContentType("application/json");
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, json.toString());

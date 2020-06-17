@@ -20,6 +20,9 @@ package org.apache.atlas.repository.store.graph;
 import org.apache.atlas.AtlasErrorCode;
 import org.apache.atlas.GraphTransactionInterceptor;
 import org.apache.atlas.annotation.GraphTransaction;
+import org.apache.atlas.authorize.AtlasAuthorizationUtils;
+import org.apache.atlas.authorize.AtlasPrivilege;
+import org.apache.atlas.authorize.AtlasTypeAccessRequest;
 import org.apache.atlas.exception.AtlasBaseException;
 import org.apache.atlas.listener.ChangedTypeDefs;
 import org.apache.atlas.listener.TypeDefChangeListener;
@@ -645,8 +648,12 @@ public abstract class AtlasTypeDefGraphStore implements AtlasTypeDefStore {
             }
         }
 
+
+        AtlasPrivilege accessPrivilege = getAccessPrivilege(searchFilter);
         for(AtlasClassificationType classificationType : typeRegistry.getAllClassificationTypes()) {
-            if (searchPredicates.evaluate(classificationType)) {
+            if (searchPredicates.evaluate(classificationType)
+            && checkReadClassification(classificationType.getClassificationDef(),AtlasPrivilege.TYPE_READ)
+            && (accessPrivilege == null || checkReadClassification(classificationType.getClassificationDef(),accessPrivilege))) {
                 typesDef.getClassificationDefs().add(classificationType.getClassificationDef());
             }
         }
@@ -664,6 +671,41 @@ public abstract class AtlasTypeDefGraphStore implements AtlasTypeDefStore {
         }
 
         return typesDef;
+    }
+
+    private AtlasPrivilege getAccessPrivilege(SearchFilter searchFilter) {
+        if(StringUtils.isNotBlank(searchFilter.getParam("access"))){
+            String privilegeType = searchFilter.getParam("access");
+            for (AtlasPrivilege value : AtlasPrivilege.values()) {
+                if(StringUtils.equalsIgnoreCase(value.getType(),privilegeType)){
+                    return value;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean checkReadClassification(AtlasClassificationDef classificationDef,AtlasPrivilege privilege) throws AtlasBaseException {
+        if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasTypeAccessRequest(privilege, classificationDef))){
+            return true;
+        }
+        return recursionCheckChildClassification(classificationDef.getSuperTypes(),privilege);
+    }
+
+    private boolean recursionCheckChildClassification(Set<String> superTypes, AtlasPrivilege privilege) {
+        if(superTypes!=null && !superTypes.isEmpty()){
+            for (String superType : superTypes) {
+                AtlasClassificationDef ret = typeRegistry.getClassificationDefByName(superType);
+
+                if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasTypeAccessRequest(privilege, ret))){
+                    return true;
+                }
+
+                Set<String> retSuperTypes = ret.getSuperTypes();
+                return recursionCheckChildClassification(retSuperTypes,privilege);
+            }
+        }
+        return false;
     }
 
     @Override

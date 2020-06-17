@@ -72,3 +72,4 @@ distro/solr/*.tgz
 # emacs files
 *#
 *~
+distro

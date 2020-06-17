@@ -111,6 +111,20 @@ public class AtlasClientV2 extends AtlasBaseClient {
         super(baseUrl, cookie);
     }
 
+    /**
+     * Constructor for AtlasClient with token as header
+     * @param baseUrl
+     * @param token
+     */
+    public AtlasClientV2(String[] baseUrl, String token) {
+        super(baseUrl, token);
+    }
+
+    public AtlasClientV2(String[] baseUrl, String ssoServer,String userName,String password,String clientId,String clientSecret) {
+        super(baseUrl,ssoServer,userName,password,clientId,clientSecret);
+    }
+
+
     public AtlasClientV2(Configuration configuration, String[] baseUrl, String[] basicAuthUserNamePassword) {
         super(configuration, baseUrl, basicAuthUserNamePassword);
     }

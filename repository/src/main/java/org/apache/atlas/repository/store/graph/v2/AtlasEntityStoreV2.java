@@ -18,10 +18,12 @@
 package org.apache.atlas.repository.store.graph.v2;
 
 
+import org.apache.atlas.AtlasClient;
 import org.apache.atlas.AtlasErrorCode;
 import org.apache.atlas.GraphTransactionInterceptor;
 import org.apache.atlas.RequestContext;
 import org.apache.atlas.annotation.GraphTransaction;
+import org.apache.atlas.authorize.AtlasClassificationEntityRequest;
 import org.apache.atlas.authorize.AtlasEntityAccessRequest;
 import org.apache.atlas.authorize.AtlasPrivilege;
 import org.apache.atlas.authorize.AtlasAuthorizationUtils;
@@ -517,8 +519,13 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
         AtlasEntityHeader entityHeader = entityRetriever.toAtlasEntityHeaderWithClassifications(entityVertex);
 
         for (AtlasClassification classification : classifications) {
-            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_ADD_CLASSIFICATION, entityHeader, classification),
+//            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_ADD_CLASSIFICATION, entityHeader, classification),
+//                                                 "add classification: guid=", guid, ", classification=", classification.getTypeName());
+            AtlasEntityAccessRequest request = new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_ADD_CLASSIFICATION, entityHeader, classification);
+            if(!AtlasAuthorizationUtils.isAccessAllowed(request)){
+                AtlasAuthorizationUtils.verifyAccess(new AtlasClassificationEntityRequest(AtlasPrivilege.ADD_CLASSIFICATION_TABLES,String.valueOf(classification.getTypeName()),entityHeader.getTypeName(),String.valueOf(entityHeader.getAttribute(AtlasClient.QUALIFIED_NAME))),
                                                  "add classification: guid=", guid, ", classification=", classification.getTypeName());
+            }
         }
 
         EntityMutationContext context = new EntityMutationContext();
@@ -561,7 +568,12 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
         AtlasEntityHeader entityHeader = entityRetriever.toAtlasEntityHeaderWithClassifications(entityVertex);
 
         for (AtlasClassification classification : classifications) {
-            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_UPDATE_CLASSIFICATION, entityHeader, classification), "update classification: guid=", guid, ", classification=", classification.getTypeName());
+//            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_UPDATE_CLASSIFICATION, entityHeader, classification), "update classification: guid=", guid, ", classification=", classification.getTypeName());
+            AtlasEntityAccessRequest request = new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_UPDATE_CLASSIFICATION, entityHeader, classification);
+            if(!AtlasAuthorizationUtils.isAccessAllowed(request)){
+                AtlasAuthorizationUtils.verifyAccess(new AtlasClassificationEntityRequest(AtlasPrivilege.UPDATE_CLASSIFICATION_TABLES,String.valueOf(classification.getTypeName()),entityHeader.getTypeName(),String.valueOf(entityHeader.getAttribute(AtlasClient.QUALIFIED_NAME))),
+                        "update classification: guid=", guid, ", classification=", classification.getTypeName());
+            }
         }
 
         EntityMutationContext context = new EntityMutationContext();
@@ -602,8 +614,13 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
 
             AtlasEntityHeader entityHeader = entityRetriever.toAtlasEntityHeaderWithClassifications(entityVertex);
 
-            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_ADD_CLASSIFICATION, entityHeader, classification),
-                                                 "add classification: guid=", guid, ", classification=", classification.getTypeName());
+//            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_ADD_CLASSIFICATION, entityHeader, classification),
+//                                                 "add classification: guid=", guid, ", classification=", classification.getTypeName());
+            AtlasEntityAccessRequest request = new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_ADD_CLASSIFICATION, entityHeader, classification);
+            if(!AtlasAuthorizationUtils.isAccessAllowed(request)){
+                AtlasAuthorizationUtils.verifyAccess(new AtlasClassificationEntityRequest(AtlasPrivilege.ADD_CLASSIFICATION_TABLES,String.valueOf(classification.getTypeName()),entityHeader.getTypeName(),String.valueOf(entityHeader.getAttribute(AtlasClient.QUALIFIED_NAME))),
+                        "add classification: guid=", guid, ", classification=", classification.getTypeName());
+            }
 
             context.cacheEntity(guid, entityVertex, typeRegistry.getEntityTypeByName(entityHeader.getTypeName()));
         }
@@ -641,9 +658,15 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
 
         // verify authorization only for removal of directly associated classification and not propagated one.
         if (StringUtils.isEmpty(associatedEntityGuid) || guid.equals(associatedEntityGuid)) {
-            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_REMOVE_CLASSIFICATION,
-                                                 entityHeader, new AtlasClassification(classificationName)),
-                                                 "remove classification: guid=", guid, ", classification=", classificationName);
+//            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_REMOVE_CLASSIFICATION,
+//                                                 entityHeader, new AtlasClassification(classificationName)),
+//                                                 "remove classification: guid=", guid, ", classification=", classificationName);
+            AtlasClassification classification = new AtlasClassification(classificationName);
+            AtlasEntityAccessRequest request = new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_REMOVE_CLASSIFICATION, entityHeader, classification);
+            if(!AtlasAuthorizationUtils.isAccessAllowed(request)){
+                AtlasAuthorizationUtils.verifyAccess(new AtlasClassificationEntityRequest(AtlasPrivilege.REMOVE_CLASSIFICATION_TABLES,classificationName,entityHeader.getTypeName(),String.valueOf(entityHeader.getAttribute(AtlasClient.QUALIFIED_NAME))),
+                        "remove classification: guid=", guid, ", classification=", classification.getTypeName());
+            }
         }
 
         if (LOG.isDebugEnabled()) {

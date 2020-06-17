@@ -42,6 +42,7 @@ import org.apache.atlas.model.impexp.AtlasExportRequest;
 import org.apache.atlas.model.impexp.AtlasImportRequest;
 import org.apache.atlas.model.impexp.AtlasImportResult;
 import org.apache.atlas.model.metrics.AtlasMetrics;
+import org.apache.atlas.security.JwtTokenUtils;
 import org.apache.atlas.security.SecureClientUtils;
 import org.apache.atlas.type.AtlasType;
 import org.apache.atlas.utils.AtlasJson;
@@ -113,7 +114,9 @@ public abstract class AtlasBaseClient {
     private AtlasClientContext atlasClientContext;
     private boolean retryEnabled = false;
     private Cookie cookie = null;
+    private String token = null;
 
+    private JwtTokenUtils jwtTokenUtils;
     private SecureClientUtils clientUtils;
 
     protected AtlasBaseClient() {
@@ -149,6 +152,11 @@ public abstract class AtlasBaseClient {
         initializeState(baseUrls, null, null);
     }
 
+    protected AtlasBaseClient(String[] baseUrls, String token) {
+        this.token = token;
+        initializeState(baseUrls, null, null);
+    }
+
     @VisibleForTesting
     protected AtlasBaseClient(WebResource service, Configuration configuration) {
         this.service = service;
@@ -167,6 +175,11 @@ public abstract class AtlasBaseClient {
         }
 
         initializeState(configuration, baseUrl, null, null);
+    }
+
+    public AtlasBaseClient(String[] baseUrls, String ssoServer, String userName, String password, String clientId, String clientSecret) {
+        initializeState(baseUrls, null, null);
+        jwtTokenUtils = new JwtTokenUtils(ssoServer,userName,password,clientId,clientSecret);
     }
 
     protected static UserGroupInformation getCurrentUGI() throws AtlasException {
@@ -309,6 +322,10 @@ public abstract class AtlasBaseClient {
         }
     }
 
+    public void setToken(String token){
+        this.token = token;
+    }
+
     @VisibleForTesting
     protected String determineActiveServiceURL(String[] baseUrls, Client client) {
         if (baseUrls.length == 0) {
@@ -379,6 +396,14 @@ public abstract class AtlasBaseClient {
                 requestBuilder.cookie(cookie);
             }
 
+            if(jwtTokenUtils != null){
+                requestBuilder.header("Authorization","Bearer "+jwtTokenUtils.getToken());
+            }
+
+            if(StringUtils.isNotBlank(token)){
+                requestBuilder.header("Authorization","Bearer "+token);
+            }
+
             clientResponse = requestBuilder.method(api.getMethod(), ClientResponse.class, requestObject);
 
             LOG.debug("HTTP Status  : {}", clientResponse.getStatus());
@@ -388,37 +413,41 @@ public abstract class AtlasBaseClient {
                     api.getNormalizedPath(), api.getConsumes(), api.getProduces(), clientResponse.getStatus());
             }
 
-            if (clientResponse.getStatus() == api.getExpectedStatus().getStatusCode()) {
-                if (responseType == null) {
-                    return null;
-                }
-                try {
-                    if(api.getProduces().equals(MediaType.APPLICATION_OCTET_STREAM)) {
-                        return (T) clientResponse.getEntityInputStream();
-                    } else if (responseType.getRawClass().equals(ObjectNode.class)) {
-                        String stringEntity = clientResponse.getEntity(String.class);
-                        try {
-                            JsonNode jsonObject = AtlasJson.parseToV1JsonNode(stringEntity);
-                            LOG.debug("Response     : {}", jsonObject);
-                            LOG.debug("------------------------------------------------------");
-                            return (T) jsonObject;
-                        } catch (IOException e) {
-                            throw new AtlasServiceException(api, e);
-                        }
-                    } else {
-                        T entity = clientResponse.getEntity(responseType);
-                        LOG.debug("Response     : {}", entity);
-                        LOG.debug("------------------------------------------------------");
-                        return entity;
+            if(clientResponse.getStatus() / 100 == 4 && jwtTokenUtils != null){
+                jwtTokenUtils.refreshToken();
+            }else{
+                if (clientResponse.getStatus() == api.getExpectedStatus().getStatusCode()) {
+                    if (responseType == null) {
+                        return null;
                     }
-                } catch (ClientHandlerException e) {
-                    throw new AtlasServiceException(api, e);
+                    try {
+                        if(api.getProduces().equals(MediaType.APPLICATION_OCTET_STREAM)) {
+                            return (T) clientResponse.getEntityInputStream();
+                        } else if (responseType.getRawClass().equals(ObjectNode.class)) {
+                            String stringEntity = clientResponse.getEntity(String.class);
+                            try {
+                                JsonNode jsonObject = AtlasJson.parseToV1JsonNode(stringEntity);
+                                LOG.debug("Response     : {}", jsonObject);
+                                LOG.debug("------------------------------------------------------");
+                                return (T) jsonObject;
+                            } catch (IOException e) {
+                                throw new AtlasServiceException(api, e);
+                            }
+                        } else {
+                            T entity = clientResponse.getEntity(responseType);
+                            LOG.debug("Response     : {}", entity);
+                            LOG.debug("------------------------------------------------------");
+                            return entity;
+                        }
+                    } catch (ClientHandlerException e) {
+                        throw new AtlasServiceException(api, e);
+                    }
+                } else if (clientResponse.getStatus() != ClientResponse.Status.SERVICE_UNAVAILABLE.getStatusCode()) {
+                    break;
+                } else {
+                    LOG.error("Got a service unavailable when calling: {}, will retry..", resource);
+                    sleepBetweenRetries();
                 }
-            } else if (clientResponse.getStatus() != ClientResponse.Status.SERVICE_UNAVAILABLE.getStatusCode()) {
-                break;
-            } else {
-                LOG.error("Got a service unavailable when calling: {}, will retry..", resource);
-                sleepBetweenRetries();
             }
 
             i++;
