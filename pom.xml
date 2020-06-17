@@ -783,8 +783,6 @@
         <module>addons/hbase-bridge</module>
         <module>addons/hbase-testing-util</module>
         <module>addons/kafka-bridge</module>
-        <module>addons/dremio-bridge</module>
-        <module>addons/dremio-bridge-shim</module>
 
         <module>distro</module>
     </modules>
@@ -1616,20 +1614,20 @@
 
     <dependencies>
 
-<!--        <dependency>-->
-<!--            <groupId>org.slf4j</groupId>-->
-<!--            <artifactId>slf4j-api</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.slf4j</groupId>-->
-<!--            <artifactId>slf4j-log4j12</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.slf4j</groupId>-->
-<!--            <artifactId>jul-to-slf4j</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>cglib</groupId>
