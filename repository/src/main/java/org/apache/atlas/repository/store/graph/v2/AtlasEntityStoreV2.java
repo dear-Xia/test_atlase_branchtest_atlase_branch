@@ -522,8 +522,8 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
             AtlasEntityAccessRequest request = new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_ADD_CLASSIFICATION, entityHeader, classification);
             if(!AtlasAuthorizationUtils.isAccessAllowed(request)){
 
-                AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classification.getTypeName());
-                if(!recursionCheckClassification(classificationDef,AtlasPrivilege.ADD_CLASSIFICATION_TABLES,entityHeader)){
+//                AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classification.getTypeName());
+                if(!recursionCheckClassification(classification,AtlasPrivilege.ADD_CLASSIFICATION_TABLES,entityHeader)){
                     throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, request.getUser(), "add classification: guid="+guid+",classification="+classification.getTypeName());
                 }
             }
@@ -572,8 +572,8 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
 //            AtlasAuthorizationUtils.verifyAccess(new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_UPDATE_CLASSIFICATION, entityHeader, classification), "update classification: guid=", guid, ", classification=", classification.getTypeName());
             AtlasEntityAccessRequest request = new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_UPDATE_CLASSIFICATION, entityHeader, classification);
             if(!AtlasAuthorizationUtils.isAccessAllowed(request)){
-                AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classification.getTypeName());
-                if(!recursionCheckClassification(classificationDef,AtlasPrivilege.UPDATE_CLASSIFICATION_TABLES,entityHeader)){
+//                AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classification.getTypeName());
+                if(!recursionCheckClassification(classification,AtlasPrivilege.UPDATE_CLASSIFICATION_TABLES,entityHeader)){
                     throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, request.getUser(), "update classification: guid="+guid+",classification="+classification.getTypeName());
                 }
             }
@@ -621,8 +621,7 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
 //                                                 "add classification: guid=", guid, ", classification=", classification.getTypeName());
             AtlasEntityAccessRequest request = new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_ADD_CLASSIFICATION, entityHeader, classification);
             if(!AtlasAuthorizationUtils.isAccessAllowed(request)){
-                AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classification.getTypeName());
-                if(!recursionCheckClassification(classificationDef,AtlasPrivilege.ADD_CLASSIFICATION_TABLES,entityHeader)){
+                if(!recursionCheckClassification(classification,AtlasPrivilege.ADD_CLASSIFICATION_TABLES,entityHeader)){
                     throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, request.getUser(), "add classification: guid="+guid+",classification="+classification.getTypeName());
                 }
             }
@@ -669,8 +668,8 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
             AtlasClassification classification = new AtlasClassification(classificationName);
             AtlasEntityAccessRequest request = new AtlasEntityAccessRequest(typeRegistry, AtlasPrivilege.ENTITY_REMOVE_CLASSIFICATION, entityHeader, classification);
             if(!AtlasAuthorizationUtils.isAccessAllowed(request)){
-                AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classification.getTypeName());
-                if(!recursionCheckClassification(classificationDef,AtlasPrivilege.REMOVE_CLASSIFICATION_TABLES,entityHeader)){
+//                AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classification.getTypeName());
+                if(!recursionCheckClassification(classification,AtlasPrivilege.REMOVE_CLASSIFICATION_TABLES,entityHeader)){
                     throw new AtlasBaseException(AtlasErrorCode.UNAUTHORIZED_ACCESS, request.getUser(), "remove classification: guid="+guid+",classification="+classification.getTypeName());
                 }
             }
@@ -1131,20 +1130,30 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
         }
     }
 
-    private boolean recursionCheckClassification(AtlasClassificationDef classificationDef,AtlasPrivilege privilege,AtlasEntityHeader entityHeader) {
-        if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasClassificationEntityRequest(privilege,classificationDef.getName(),entityHeader.getTypeName(),String.valueOf(entityHeader.getAttribute(AtlasClient.QUALIFIED_NAME))))){
+    private boolean recursionCheckClassification(AtlasClassification classification,AtlasPrivilege privilege,AtlasEntityHeader entityHeader) {
+        if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasClassificationEntityRequest(privilege,classification.getTypeName(),entityHeader.getTypeName(),String.valueOf(entityHeader.getAttribute(AtlasClient.QUALIFIED_NAME))))){
             return true;
         }
+        final AtlasClassificationDef classificationDef = typeRegistry.getClassificationDefByName(classification.getTypeName());
+        if(classificationDef!=null){
+            return recursionCheckClassificationDef(classificationDef,privilege,entityHeader);
+        }else{
+            return false;
+        }
+    }
+
+    private boolean recursionCheckClassificationDef(AtlasClassificationDef classificationDef, AtlasPrivilege privilege, AtlasEntityHeader entityHeader) {
         if(classificationDef.getSuperTypes()!=null){
             for (String superType : classificationDef.getSuperTypes()) {
-                AtlasClassificationDef ret = typeRegistry.getClassificationDefByName(superType);
 
-//                if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasClassificationEntityRequest(privilege,ret.getName(),entityHeader.getTypeName(),String.valueOf(entityHeader.getAttribute(AtlasClient.QUALIFIED_NAME))))){
-//                    return true;
-//                }
-                 if(recursionCheckClassification(ret,privilege,entityHeader)){
-                     return true;
-                 }
+                if(AtlasAuthorizationUtils.isAccessAllowed(new AtlasClassificationEntityRequest(privilege,superType,entityHeader.getTypeName(),String.valueOf(entityHeader.getAttribute(AtlasClient.QUALIFIED_NAME))))){
+                    return true;
+                }
+
+                AtlasClassificationDef ret = typeRegistry.getClassificationDefByName(superType);
+                if(ret != null && recursionCheckClassificationDef(ret,privilege,entityHeader)) {
+                    return true;
+                }
             }
         }
         return false;
