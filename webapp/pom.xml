@@ -44,7 +44,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <packages.to.exclude>${distro.exclude.packages}</packages.to.exclude>
+                <packages.to.exclude>WEB-INF/lib/je-*.jar,WEB-INF/lib/solr-test-framework-*.jar,WEB-INF/lib/logback-*.jar</packages.to.exclude>
             </properties>
         </profile>
 
