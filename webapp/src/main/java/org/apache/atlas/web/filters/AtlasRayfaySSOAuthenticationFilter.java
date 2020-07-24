@@ -511,6 +511,7 @@ public class AtlasRayfaySSOAuthenticationFilter implements Filter {
                 LOG.info("Connected to fetch access token success cost: {}", cost);
                 return token;
             } catch (RuntimeException ex) {
+                LOG.error("challengeToken failed.",ex);
                 if (retry == 3) {
                     long cost = System.currentTimeMillis() - s0;
                     LOG.info("Connecting to fetch access token {} times failed {} cost: {}", retry, ex.getMessage(), cost);
@@ -535,7 +536,10 @@ public class AtlasRayfaySSOAuthenticationFilter implements Filter {
             conn.setRequestProperty("Accept", "*/*");
             DataOutputStream writer = new DataOutputStream(conn.getOutputStream());
 
-            writer.writeBytes("code="+ code + "&grant_type=authorization_code&redirect_uri=" + getRedirectURL(request));
+            String codeUrl =  "code="+ code + "&grant_type=authorization_code&redirect_uri=" + getRedirectURL(request);
+            LOG.info("c:"+code+" a:"+appId+" s:"+appSecret+" u:"+url+" cu:"+codeUrl);
+
+            writer.writeBytes(codeUrl);
             writer.flush();
             String line;
             BufferedReader reader = new BufferedReader(new
@@ -553,6 +557,7 @@ public class AtlasRayfaySSOAuthenticationFilter implements Filter {
             reader.close();
             conn.disconnect();
         } catch (Exception ex) {
+            LOG.error("_challengeToken failed.",ex);
             throw new RuntimeException("Fetch token failed " + ex.getMessage());
         }
         return token;
